@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MailSender</title>
+  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+  <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+  <%= csrf_meta_tags %>
+</head>
+<body>
+<p id="notice"><%= notice %></p>
+<p id="alert"><%= alert %></p>
+<%if user_signed_in?%>
+<h1><%=current_user.name%></h1> -- <h3><%=current_user.email%></h3>
+<%=link_to "Cerrar Sesión", destroy_user_session_path, :method => :delete%><br>
+<%=link_to "Contraseña", edit_user_registration_path%>
+<%else%>
+<%=link_to "Registrarse", new_user_registration_path%> <br>
+<%=link_to "Iniciar sesión", new_user_session_path%>	
+<%end%>
+
+<%= yield %>
+
+</body>
+</html>

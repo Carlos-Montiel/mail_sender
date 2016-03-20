@@ -1,0 +1,52 @@
+-first i added the gem of omniouth-facebook to my gemfile
+-then i generated a migration -g migration AddOmniauthToUsers provider:string uid:string- in order to add others fields to users devise 
+-then i added 
+	-config.omniauth :facebook, ENV['app_id'], ENV['app_secret'],
+                  scope: "email, user_friends", info_fields: "name, first_name, cover, gender, picture, friends"-
+    'with environment variables' to -config/initializers/devise.rb- 
+-i added -devise :omniauthable, :omniauth_providers => [:facebook]- to my model 'user.rb'
+-in windows we need to set a phat in entorn variables with the cacert.pem
+-in the routes we need to add a new route for the callbacks i added -devise_for :users, :controllers => { :omniauth_callbacks => "omniauth_callbacks" }-
+-then i created a new file called -app/controllers/users/omniauth_callbacks_controller.rb-
+-and i putted the code below:
+		class OmniauthCallbacksController < Devise::OmniauthCallbacksController
+		  def facebook
+		    # You need to implement the method below in your model (e.g. app/models/user.rb)
+		    #it is when we want to sign in when we are also logged with our email
+		    if user_signed_in? && current_user.provider == ""
+		  		@user = User.from_omniauth_started(request.env["omniauth.auth"], current_user)
+		  	#and it is when we want to log in only with facebook
+			else
+		    	@user = User.from_omniauth(request.env["omniauth.auth"])
+		    end
+		    
+			if @user.persisted?
+			  sign_in_and_redirect @user, :event => :authentication #this will throw if @user is not activated
+			  set_flash_message(:notice, :success, :kind => "Facebook") if is_navigational_format?
+			else
+			  session["devise.facebook_data"] = request.env["omniauth.auth"]
+			  redirect_to new_user_registration_url
+			end
+			
+		  end
+
+		  def failure
+		    redirect_to root_path
+		  end
+		end
+-in our model -user.rb-, there is two actions because we have two calls in our callback file (the past step)
+   	def self.from_omniauth_started(auth, current_user)
+   	  user = User.find(current_user.id)
+	  user.update_attributes(provider: auth.provider, uid: auth.uid)
+	  user 
+	end
+
+	def self.from_omniauth(auth)
+	  user = where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
+	    user.email = auth.info.email
+	    user.password = Devise.friendly_token[0,20]
+	    user.name = auth.info.name
+	  end
+	  user.skip_confirmation!
+	  user
+	end
