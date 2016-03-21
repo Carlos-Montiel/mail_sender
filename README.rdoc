@@ -1,6 +1,6 @@
 == README
 
-* You nedd to set your environment variables for the email. 
+* You need to set your environment variables for the email. 
 
 This README would normally document whatever steps are necessary to get the
 application up and running.
